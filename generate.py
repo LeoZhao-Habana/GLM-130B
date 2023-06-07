@@ -12,6 +12,8 @@ from generation import BeamSearchStrategy, BaseStrategy
 from SwissArmyTransformer.generation.utils import timed_name, generate_continually
 from initialize import initialize, initialize_model_and_tokenizer
 
+import habana_frameworks.torch.gpu_migration
+import habana_frameworks.torch.core as htcore
 
 def add_generation_specific_args(parser):
     parser.add_argument("--sampling-strategy", type=str, default="BaseStrategy", help="Type of sampling strategy.")
@@ -103,12 +105,11 @@ def fill_blanks(raw_text: str, model, tokenizer, strategy) -> Tuple[List[str], L
 
         input_seq = torch.cuda.LongTensor(
             [seq + [tokenizer.get_command("sop")]],
-            device=args.device,
         )
         output, _ = batch_filling_sequence(
             model,
             input_seq,
-            torch.cuda.LongTensor([input_seq.shape[-1]], device=args.device),
+            torch.cuda.LongTensor([input_seq.shape[-1]]),
             strategy=strategy,
             get_masks_and_position_ids=partial(
                 get_masks_and_position_ids,
@@ -158,6 +159,9 @@ def fill_blanks(raw_text: str, model, tokenizer, strategy) -> Tuple[List[str], L
 
 def main(args):
     model, tokenizer = initialize_model_and_tokenizer(args)
+
+    import habana_frameworks.torch as ht
+    model = ht.hpu.wrap_in_hpu_graph(model)
 
     end_tokens = [tokenizer.get_command("eop"), tokenizer.get_command("eos")]
 

@@ -7,7 +7,7 @@ main_dir=$(dirname $script_dir)
 source "${main_dir}/configs/model_glm_130b.sh"
 
 SEED=1234
-MAX_OUTPUT_LENGTH=256
+MAX_OUTPUT_LENGTH=16
 MIN_GEN_LENGTH=0
 # BeamSearchStrategy args
 NUM_BEAMS=4

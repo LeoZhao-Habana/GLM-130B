@@ -36,7 +36,10 @@ def batch_filling_sequence(
     index = 0 if mems is None else mems.shape[2] # Next forward starting index, also the length of cache.
     num_beams = 1
     # step-by-step generation
+
     while counter < seqs.shape[1] - 1:
+        if torch.distributed.get_rank() == 0:
+            print(f"{counter}/{seqs.shape[1] - 1}")
         # Now, we want to generate seq[counter + 1],
         # token[:, index: counter+1] needs forwarding.
         # forward
